@@ -6,6 +6,21 @@ import (
 	"net/http"
 )
 
+type contextKey int
+
+const (
+	ProductKey contextKey = iota
+)
+
+type ApiResponse struct {
+	Status int            `json:"status"`
+	Body   map[string]any `json:"body"`
+}
+
+func NewApiResponse(status int, body map[string]any) *ApiResponse {
+	return &ApiResponse{status, body}
+}
+
 func JSON(w http.ResponseWriter, status int, v interface{}) {
 	buffer := &bytes.Buffer{}
 	if err := json.NewEncoder(buffer).Encode(v); err != nil {
