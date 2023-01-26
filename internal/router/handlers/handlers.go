@@ -9,7 +9,10 @@ import (
 type contextKey int
 
 const (
-	ProductKey contextKey = iota
+	AuthorizationHeader string     = "Authorization"
+	AccessTokenHeader   string     = "X-Access-Token"
+	RefreshTokenHeader  string     = "X-Refresh-Token"
+	ProductKey          contextKey = iota
 )
 
 type ApiResponse struct {

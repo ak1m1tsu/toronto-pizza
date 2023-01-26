@@ -14,11 +14,9 @@ import (
 
 type AuthService struct {
 	rep repository.IUserRepository
-	accessToken Token
-	refreshToken Token
 }
 
-func NewAuthService(rep repository.IUserRepository, access, refresh Token) IAuthService {
+func NewAuthService(rep repository.IUserRepository) IAuthService {
 	return &AuthService{rep: rep}
 }
 

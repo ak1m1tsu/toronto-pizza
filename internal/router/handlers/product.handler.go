@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/romankravchuk/toronto-pizza/internal/router/handlers/models"
 	"github.com/romankravchuk/toronto-pizza/internal/service"
 )
 
@@ -35,7 +36,7 @@ func (h *ProductHandler) HandleGetProduct(w http.ResponseWriter, r *http.Request
 	resp := NewApiResponse(http.StatusOK, map[string]any{"message": "got"})
 	ctx := r.Context()
 
-	product, ok := ctx.Value(ProductKey).(any)
+	product, ok := ctx.Value(ProductKey).(*models.ProductDTO)
 	if !ok {
 		resp.Status = http.StatusUnprocessableEntity
 		resp.Body = map[string]any{"error": "uprocessable entity"}

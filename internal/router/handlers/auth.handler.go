@@ -3,21 +3,25 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/romankravchuk/toronto-pizza/internal/config"
+	"github.com/romankravchuk/toronto-pizza/internal/router/handlers/models"
 	"github.com/romankravchuk/toronto-pizza/internal/service"
 )
 
 type AuthHandler struct {
-	svc service.IAuthService
+	svc          service.IAuthService
+	accessToken  config.Token
+	refreshToken config.Token
 }
 
-func NewAuthHandler(svc service.IAuthService) *AuthHandler {
-	return &AuthHandler{svc}
+func NewAuthHandler(svc service.IAuthService, access, refresh config.Token) *AuthHandler {
+	return &AuthHandler{svc: svc, accessToken: access, refreshToken: refresh}
 }
 
 func (h *AuthHandler) HandleSignIn(w http.ResponseWriter, r *http.Request) {
 	resp := NewApiResponse(http.StatusForbidden, map[string]any{})
 
-	creds, err := NewCredetials(r.Body)
+	creds, err := models.NewCredetials(r.Body)
 	if err != nil {
 		resp.SetError(err)
 		JSON(w, resp.Status, resp)
@@ -27,26 +31,44 @@ func (h *AuthHandler) HandleSignIn(w http.ResponseWriter, r *http.Request) {
 	if err := h.svc.ValidatePassword(creds.Phone, creds.Password); err != nil {
 		resp.SetError(err)
 		JSON(w, resp.Status, resp)
+		return
 	}
 
 	resp.Status = http.StatusInternalServerError
 
-	access_token, err := h.svc.CreateToken(h.accessToken.ExpiresIn, user.ID, h.accessToken.PrivateKey)
+	accessToken, err := h.svc.CreateToken(h.accessToken.ExpiresIn, creds.Phone, h.accessToken.PrivateKey)
 	if err != nil {
 		resp.SetError(err)
-		JSON(writer, resp.Status, resp)
+		JSON(w, resp.Status, resp)
 		return
 	}
 
-	refresh_token, err := h.svc.CreateToken(h.refreshToken.ExpiresIn, user.ID, h.refreshToken.PrivateKey)
+	refreshToken, err := h.svc.CreateToken(h.refreshToken.ExpiresIn, creds.Phone, h.refreshToken.PrivateKey)
 	if err != nil {
 		resp.SetError(err)
-		JSON(writer, resp.Status, resp)
+		JSON(w, resp.Status, resp)
 		return
 	}
-	
-	resp.Status = http.StatusOK
-	resp.Body = map[string]any{}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     AccessTokenHeader,
+		Value:    accessToken,
+		Domain:   "localhost",
+		Path:     "/",
+		HttpOnly: true,
+		MaxAge:   h.accessToken.MaxAge * 60,
+	})
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     RefreshTokenHeader,
+		Value:    refreshToken,
+		Domain:   "localhost",
+		Path:     "/",
+		HttpOnly: true,
+		MaxAge:   h.refreshToken.MaxAge * 60,
+	})
+
+	resp = NewApiResponse(http.StatusOK, map[string]any{"access_token": accessToken})
 	JSON(w, resp.Status, resp)
 }
 

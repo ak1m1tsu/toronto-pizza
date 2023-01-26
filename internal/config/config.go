@@ -1,6 +1,11 @@
 package config
 
-import "time"
+import (
+	"os"
+	"time"
+
+	"gopkg.in/yaml.v3"
+)
 
 type Token struct {
 	PrivateKey string        `yaml:",omitempty"`
@@ -28,6 +33,12 @@ func GetConfig(path string) (*Config, error) {
 		if err != nil {
 			return nil, err
 		}
+		config.MongoURL = os.Getenv("MONGO_URL")
+		config.Port = os.Getenv("PORT")
+		config.AccessToken.PrivateKey = os.Getenv("ACCESS_PRIVATE_KEY")
+		config.AccessToken.PublicKey = os.Getenv("ACCESS_PUBLIC_KEY")
+		config.RefreshToken.PrivateKey = os.Getenv("REFRESH_PRIVATE_KEY")
+		config.RefreshToken.PublicKey = os.Getenv("REFRESH_PUBLIC_KEY")
 	}
 	return config, nil
 }

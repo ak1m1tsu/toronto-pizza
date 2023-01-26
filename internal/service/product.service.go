@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/romankravchuk/toronto-pizza/internal/repository"
+	dto "github.com/romankravchuk/toronto-pizza/internal/router/handlers/models"
 )
 
 type ProductService struct {
@@ -14,22 +15,18 @@ func NewProductService(rep repository.IProductRepository) IProductService {
 	return &ProductService{rep: rep}
 }
 
-func (s *ProductService) GetProductByID(ctx context.Context, id string) (any, error) {
+func (s *ProductService) GetProductByID(ctx context.Context, id string) (*dto.ProductDTO, error) {
 	return nil, nil
 }
-
-func (s *ProductService) GetProducts(ctx context.Context) (any, error) {
+func (s *ProductService) GetProducts(ctx context.Context) ([]*dto.ProductDTO, error) {
 	return nil, nil
 }
-
-func (s *ProductService) DeleteProduct(ctx context.Context, id string) (any, error) {
+func (s *ProductService) DeleteProduct(ctx context.Context, id string) (string, error) {
+	return "", nil
+}
+func (s *ProductService) UpdateProduct(ctx context.Context, id string, product *dto.ProductDTO) (*dto.ProductDTO, error) {
 	return nil, nil
 }
-
-func (s *ProductService) UpdateProduct(ctx context.Context, id string, product any) (any, error) {
-	return nil, nil
-}
-
-func (s *ProductService) InsertProduct(ctx context.Context, product any) (any, error) {
+func (s *ProductService) InsertProduct(ctx context.Context, product *dto.ProductDTO) (*dto.ProductDTO, error) {
 	return nil, nil
 }
