@@ -8,19 +8,27 @@ import (
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/romankravchuk/toronto-pizza/internal/repository"
+	dto "github.com/romankravchuk/toronto-pizza/internal/router/handlers/models"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService struct {
 	rep repository.IUserRepository
+	accessToken Token
+	refreshToken Token
 }
 
-func NewAuthService(rep repository.IUserRepository) IAuthService {
+func NewAuthService(rep repository.IUserRepository, access, refresh Token) IAuthService {
 	return &AuthService{rep: rep}
 }
 
-func (s *AuthService) GetUserByPhone(ctx context.Context, phone string) (any, error) {
-	return nil, nil
+func (s *AuthService) GetUserByPhone(ctx context.Context, phone string) (*dto.UserDTO, error) {
+	user, err := s.rep.GetByPhone(ctx, phone)
+	if err != nil {
+		return nil, err
+	}
+	userDto := dto.NewUserDTO(user.ID, user.Name, user.Phone)
+	return userDto, nil
 }
 
 func (s *AuthService) ValidatePassword(phone string, pwd string) error {

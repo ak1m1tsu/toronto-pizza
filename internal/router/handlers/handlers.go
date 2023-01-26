@@ -21,6 +21,10 @@ func NewApiResponse(status int, body map[string]any) *ApiResponse {
 	return &ApiResponse{status, body}
 }
 
+func (r *ApiResponse) SetError(err error) {
+	r.Body = map[string]any{"error": err.Error()}
+}
+
 func JSON(w http.ResponseWriter, status int, v interface{}) {
 	buffer := &bytes.Buffer{}
 	if err := json.NewEncoder(buffer).Encode(v); err != nil {
