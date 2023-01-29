@@ -2,40 +2,41 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"net/http"
 	"os"
 
+	"github.com/romankravchuk/toronto-pizza/internal/config"
 	"github.com/romankravchuk/toronto-pizza/internal/router"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var (
-	client = &mongo.Client{}
-	db     = &mongo.Database{}
-	err    error
+	conf       = &config.Config{}
+	client     = &mongo.Client{}
+	db         = &mongo.Database{}
+	err        error
+	configPath string
 )
 
 func init() {
-	config := LoadConfig()
-	client, err = mongo.Connect(context.TODO(), options.Client().ApplyURI(config.MongoURI))
+	configPath = os.Getenv("CONFIG_FILE_PATH")
+	conf, err = config.GetConfig(configPath)
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
+
+	client, err = mongo.Connect(context.TODO(), options.Client().ApplyURI(conf.MongoURL))
+	if err != nil {
+		panic(err.Error())
+	}
+
 	db = client.Database("toronto-pizza")
 }
 
 func main() {
-	r := router.NewRouter(db)
-	http.ListenAndServe(":3000", r)
-}
-
-type config struct {
-	MongoURI string
-}
-
-func LoadConfig() *config {
-	return &config{
-		MongoURI: os.Getenv("MONGO_URI"),
-	}
+	r := router.NewRouter(db, conf)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", conf.Port), r))
 }

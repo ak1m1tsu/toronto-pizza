@@ -9,21 +9,33 @@ import (
 type contextKey int
 
 const (
-	ProductKey contextKey = iota
+	AuthorizationHeader string     = "Authorization"
+	AccessTokenHeader   string     = "X-Access-Token"
+	RefreshTokenHeader  string     = "X-Refresh-Token"
+	keyProduct          contextKey = iota
+	keyUserDTO
 )
 
 type ApiResponse struct {
-	Status int            `json:"status"`
-	Body   map[string]any `json:"body"`
+	Status  int                    `json:"status"`
+	Data    map[string]interface{} `json:"data"`
+	Message string                 `json:"message"`
+	Error   string                 `json:"error"`
 }
 
-func NewApiResponse(status int, body map[string]any) *ApiResponse {
-	return &ApiResponse{status, body}
-}
+func JSON(w http.ResponseWriter, status int, data map[string]interface{}, message string, err error) {
+	resp := ApiResponse{
+		Status:  status,
+		Data:    data,
+		Message: message,
+	}
 
-func JSON(w http.ResponseWriter, status int, v interface{}) {
+	if err != nil {
+		resp.Error = err.Error()
+	}
+
 	buffer := &bytes.Buffer{}
-	if err := json.NewEncoder(buffer).Encode(v); err != nil {
+	if err := json.NewEncoder(buffer).Encode(resp); err != nil {
 		http.Error(w, ErrInternalServer.Error(), http.StatusInternalServerError)
 		return
 	}

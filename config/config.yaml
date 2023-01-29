@@ -1,0 +1,6 @@
+refresh:
+  expires_in: 60m
+  max_age: 60
+access:
+  expires_in: 15m
+  max_age: 15

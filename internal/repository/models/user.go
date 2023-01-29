@@ -9,12 +9,12 @@ type User struct {
 	EncryptedPassword string `bson:"encryptedPassword"`
 }
 
-func NewUser(name, phone, password string) (*User, error) {
+func NewUser(name, phone, password string) (User, error) {
 	epwd, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, err
+		return User{}, err
 	}
-	return &User{
+	return User{
 		Name:              name,
 		Phone:             phone,
 		EncryptedPassword: string(epwd),
