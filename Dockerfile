@@ -7,6 +7,8 @@ COPY go.sum ./
 
 COPY . ./
 
+ENV CONFIG_FILE_PATH=/app/config/config.yaml
+
 RUN go build -o /toronto-pizza ./cmd/toronto-pizza
 
 EXPOSE 3000

@@ -13,7 +13,7 @@ type IUserRepository interface {
 type IProductRepository interface {
 	GetByID(ctx context.Context, id string) (*models.Product, error)
 	GetAll(ctx context.Context) ([]*models.Product, error)
-	Insert(ctx context.Context, user *models.Product) (*models.Product, error)
-	Update(ctx context.Context, id string, user *models.Product) (*models.Product, error)
-	Delete(ctx context.Context, id string) bool
+	Insert(ctx context.Context, product *models.Product) (*models.Product, error)
+	Update(ctx context.Context, id string, product *models.Product) (*models.Product, error)
+	Delete(ctx context.Context, id string) error
 }

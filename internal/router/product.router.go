@@ -8,10 +8,10 @@ import (
 )
 
 func NewProductRouter(prodSvc service.IProductService, authSvc service.IAuthService, config *config.Config) *Router {
-	router := chi.NewRouter()
+	r := &Router{chi.NewRouter()}
 	productHandler := handlers.NewProductHandler(prodSvc)
 	authMw := handlers.NewJWTAuthMiddleware(authSvc, config.AccessToken)
-	router.With(authMw.JWTRequired).Route("/product", func(r chi.Router) {
+	r.With(authMw.JWTRequired).Route("/product", func(r chi.Router) {
 		r.With().Get("/", productHandler.HandleGetProducts)
 		r.Post("/", productHandler.HandleAddProduct)
 		r.Route("/{id}", func(r chi.Router) {
@@ -21,5 +21,5 @@ func NewProductRouter(prodSvc service.IProductService, authSvc service.IAuthServ
 			r.Delete("/", productHandler.HandleDeleteProduct)
 		})
 	})
-	return &Router{Mux: *router}
+	return r
 }

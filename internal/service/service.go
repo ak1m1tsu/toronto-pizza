@@ -18,6 +18,6 @@ type IProductService interface {
 	GetProductByID(ctx context.Context, id string) (*dto.ProductDTO, error)
 	GetProducts(ctx context.Context) ([]*dto.ProductDTO, error)
 	DeleteProduct(ctx context.Context, id string) (string, error)
-	UpdateProduct(ctx context.Context, id string, product *dto.ProductDTO) (*dto.ProductDTO, error)
-	InsertProduct(ctx context.Context, product *dto.ProductDTO) (*dto.ProductDTO, error)
+	UpdateProduct(ctx context.Context, id string, product *dto.UpdateProductDTO) (*dto.ProductDTO, error)
+	InsertProduct(ctx context.Context, product *dto.CreateProductDTO) (*dto.ProductDTO, error)
 }
