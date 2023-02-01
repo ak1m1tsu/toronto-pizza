@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/romankravchuk/toronto-pizza/internal/repository"
+	"github.com/romankravchuk/toronto-pizza/internal/repository/filter"
 	dbo "github.com/romankravchuk/toronto-pizza/internal/repository/models"
 	dto "github.com/romankravchuk/toronto-pizza/internal/router/handlers/models"
 )
@@ -24,8 +25,10 @@ func (s *ProductService) GetProductByID(ctx context.Context, id string) (*dto.Pr
 	return dto.NewProductDTO(product.ID, product.Name, product.Description, "", product.Price), nil
 }
 
-func (s *ProductService) GetProducts(ctx context.Context) ([]*dto.ProductDTO, error) {
-	products, err := s.products.GetAll(ctx)
+func (s *ProductService) GetProducts(ctx context.Context, pf *dto.ProductFilter, pss []*dto.ProductSort, page int) ([]*dto.ProductDTO, error) {
+	repFilter := filter.NewProductFilter(pf.Name, pf.Category, pf.PriceMin, pf.PriceMax)
+	repSort := s.buildSort(pss)
+	products, err := s.products.GetAll(ctx, repFilter, repSort, page)
 	if err != nil {
 		return nil, err
 	}
@@ -34,6 +37,14 @@ func (s *ProductService) GetProducts(ctx context.Context) ([]*dto.ProductDTO, er
 		productsDTO = append(productsDTO, dto.NewProductDTO(p.ID, p.Name, p.Description, p.Category, p.Price))
 	}
 	return productsDTO, nil
+}
+
+func (s *ProductService) buildSort(pss []*dto.ProductSort) *filter.ProductSort {
+	var opts []filter.SortOption
+	for _, ps := range pss {
+		opts = append(opts, filter.NewSortOption(ps.Field, ps.Order))
+	}
+	return filter.NewProductSort(opts)
 }
 
 func (s *ProductService) DeleteProduct(ctx context.Context, id string) (string, error) {

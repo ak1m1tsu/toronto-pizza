@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"github.com/romankravchuk/toronto-pizza/internal/repository/filter"
 	"github.com/romankravchuk/toronto-pizza/internal/repository/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -32,14 +33,64 @@ func (r *MongoProductRepository) GetByID(ctx context.Context, id string) (*model
 	return product, err
 }
 
-func (r *MongoProductRepository) GetAll(ctx context.Context) ([]*models.Product, error) {
-	cursor, err := r.db.Collection(r.coll).Find(ctx, map[string]any{})
+func (r *MongoProductRepository) GetAll(ctx context.Context, filter *filter.ProductFilter, sort *filter.ProductSort, page int) ([]*models.Product, error) {
+	aggregatePipline := r.buildProductPipline(filter, sort, page)
+	cursor, err := r.db.Collection(r.coll).Aggregate(ctx, aggregatePipline)
 	if err != nil {
 		return nil, err
 	}
+	defer cursor.Close(ctx)
 	var products []*models.Product
 	err = cursor.All(ctx, &products)
 	return products, err
+}
+
+func (r *MongoProductRepository) buildProductPipline(filter *filter.ProductFilter, sort *filter.ProductSort, page int) []bson.M {
+	aggregatePipline := make([]bson.M, 0)
+	if filter != nil {
+		filterDoc := r.buildProductFilter(filter)
+		aggregatePipline = append(aggregatePipline, bson.M{"$match": filterDoc})
+	}
+	if sort != nil {
+		sortDoc := r.buildProductSort(sort)
+		aggregatePipline = append(aggregatePipline, bson.M{"$sort": sortDoc})
+	}
+	aggregatePipline = append(aggregatePipline, bson.M{"$skip": 10 * (page - 1)})
+	aggregatePipline = append(aggregatePipline, bson.M{"$limit": 10})
+	return aggregatePipline
+}
+
+func (r *MongoProductRepository) buildProductFilter(filter *filter.ProductFilter) bson.M {
+	filterDoc := bson.M{}
+	if filter.Category != "" {
+		filterDoc["category"] = filter.Category
+	}
+	if filter.PriceMin != 0 || filter.PriceMax != 0 {
+		priceFilter := bson.M{}
+		if filter.PriceMin != 0 {
+			priceFilter["$gte"] = filter.PriceMin
+		}
+		if filter.PriceMax != 0 {
+			priceFilter["$lte"] = filter.PriceMax
+		}
+		filterDoc["price"] = priceFilter
+	}
+	if filter.Name != "" {
+		filterDoc["name"] = bson.M{"$regex": primitive.Regex{Pattern: filter.Name, Options: "i"}}
+	}
+	return filterDoc
+}
+
+func (r *MongoProductRepository) buildProductSort(sort *filter.ProductSort) bson.M {
+	sortDoc := bson.M{}
+	for _, opt := range sort.Options {
+		sortOrder := 1
+		if opt.Order == filter.Descending {
+			sortOrder = -1
+		}
+		sortDoc[opt.Field] = sortOrder
+	}
+	return sortDoc
 }
 
 func (r *MongoProductRepository) Insert(ctx context.Context, product *models.Product) (*models.Product, error) {

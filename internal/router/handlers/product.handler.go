@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/romankravchuk/toronto-pizza/internal/router/handlers/models"
@@ -76,7 +77,13 @@ func (h *ProductHandler) HandleGetProduct(w http.ResponseWriter, r *http.Request
 }
 
 func (h *ProductHandler) HandleGetProducts(w http.ResponseWriter, r *http.Request) {
-	products, err := h.svc.GetProducts(r.Context())
+	prodFilter := models.NewProductFilter(r)
+	prodSort := []*models.ProductSort{models.NewProductSort(r)}
+	page, err := strconv.Atoi(chi.URLParam(r, "page"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+	products, err := h.svc.GetProducts(r.Context(), prodFilter, prodSort, page)
 	if err != nil {
 		JSON(w, http.StatusInternalServerError, nil, "", err)
 		return
