@@ -49,13 +49,17 @@ func (r *MongoProductRepository) buildProductPipline(filter *filter.ProductFilte
 	aggregatePipline := make([]bson.M, 0)
 	if filter != nil {
 		filterDoc := r.buildProductFilter(filter)
-		aggregatePipline = append(aggregatePipline, bson.M{"$match": filterDoc})
+		if filterDoc != nil && len(filterDoc) > 0 {
+			aggregatePipline = append(aggregatePipline, bson.M{"$match": filterDoc})
+		}
 	}
 	if sort != nil {
 		sortDoc := r.buildProductSort(sort)
-		aggregatePipline = append(aggregatePipline, bson.M{"$sort": sortDoc})
+		if sortDoc != nil && len(sortDoc) > 0 {
+			aggregatePipline = append(aggregatePipline, bson.M{"$sort": sortDoc})
+		}
 	}
-	aggregatePipline = append(aggregatePipline, bson.M{"$skip": 10 * (page - 1)})
+	aggregatePipline = append(aggregatePipline, bson.M{"$skip": int(10 * (page - 1))})
 	aggregatePipline = append(aggregatePipline, bson.M{"$limit": 10})
 	return aggregatePipline
 }
@@ -84,11 +88,13 @@ func (r *MongoProductRepository) buildProductFilter(filter *filter.ProductFilter
 func (r *MongoProductRepository) buildProductSort(sort *filter.ProductSort) bson.M {
 	sortDoc := bson.M{}
 	for _, opt := range sort.Options {
-		sortOrder := 1
-		if opt.Order == filter.Descending {
-			sortOrder = -1
+		if opt.Field != "" {
+			sortOrder := 1
+			if opt.Order == filter.Descending {
+				sortOrder = -1
+			}
+			sortDoc[opt.Field] = sortOrder
 		}
-		sortDoc[opt.Field] = sortOrder
 	}
 	return sortDoc
 }

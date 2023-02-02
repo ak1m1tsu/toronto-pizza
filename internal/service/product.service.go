@@ -42,7 +42,9 @@ func (s *ProductService) GetProducts(ctx context.Context, pf *dto.ProductFilter,
 func (s *ProductService) buildSort(pss []*dto.ProductSort) *filter.ProductSort {
 	var opts []filter.SortOption
 	for _, ps := range pss {
-		opts = append(opts, filter.NewSortOption(ps.Field, ps.Order))
+		if ps.Field != "" {
+			opts = append(opts, filter.NewSortOption(ps.Field, ps.Order))
+		}
 	}
 	return filter.NewProductSort(opts)
 }

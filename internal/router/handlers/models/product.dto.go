@@ -4,8 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-
-	"github.com/go-chi/chi/v5"
 )
 
 var (
@@ -24,17 +22,18 @@ type ProductFilter struct {
 func NewProductFilter(r *http.Request) *ProductFilter {
 	var min, max float64
 	var err error
-	min, err = strconv.ParseFloat(chi.URLParam(r, "priceMin"), strconv.IntSize)
+
+	min, err = strconv.ParseFloat(r.URL.Query().Get("priceMin"), strconv.IntSize)
 	if err != nil {
 		min = 0
 	}
-	max, err = strconv.ParseFloat(chi.URLParam(r, "priceMax"), strconv.IntSize)
+	max, err = strconv.ParseFloat(r.URL.Query().Get("priceMax"), strconv.IntSize)
 	if err != nil {
-		max = min
+		max = 0
 	}
 	return &ProductFilter{
-		Name:     chi.URLParam(r, "name"),
-		Category: chi.URLParam(r, "category"),
+		Name:     r.URL.Query().Get("name"),
+		Category: r.URL.Query().Get("category"),
 		PriceMin: min,
 		PriceMax: max,
 	}
@@ -46,6 +45,7 @@ type ProductSort struct {
 }
 
 func NewProductSort(r *http.Request) *ProductSort {
+	
 	return &ProductSort{}
 }
 

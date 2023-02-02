@@ -79,7 +79,7 @@ func (h *ProductHandler) HandleGetProduct(w http.ResponseWriter, r *http.Request
 func (h *ProductHandler) HandleGetProducts(w http.ResponseWriter, r *http.Request) {
 	prodFilter := models.NewProductFilter(r)
 	prodSort := []*models.ProductSort{models.NewProductSort(r)}
-	page, err := strconv.Atoi(chi.URLParam(r, "page"))
+	page, err := strconv.Atoi(r.URL.Query().Get("page"))
 	if err != nil || page < 1 {
 		page = 1
 	}
